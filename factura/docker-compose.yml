@@ -1,0 +1,118 @@
+version: '3'
+services:
+    apirest:
+        container_name: apirest
+        restart: always
+        build: .
+        ports:
+        - 3000:3000
+        links:
+        - 'laravel.test:laravel.test'
+        volumes:
+         - .:/usr/src/app
+        networks:
+        - sail
+        depends_on:
+            - laravel.test
+    nginx:
+        image: 'nginx:1.21'
+        container_name: maestria-nginx
+        ports:
+            - '8085:80'
+        volumes:
+            - '.:/var/www/html'
+            - './docker-config/nginx/default.conf:/etc/nginx/conf.d/default.conf'
+        networks:
+            - sail
+        environment:
+            DB_HOST: postgres
+            DB_PORT: 5432
+            DB_USER: '${POSTGRES_USER}'
+            DB_PASSWORD: '${POSTGRES_PW}'
+            DB_NAME: '${POSTGRES_DB}'
+        depends_on:
+            - laravel.test
+            - postgres
+        links:
+            - 'laravel.test:laravel.test'
+    laravel.test:
+        build:
+            context: ./vendor/laravel/sail/runtimes/8.2
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP}'
+        image: sail-8.2/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '${APP_PORT:-8000}:80'
+            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
+            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
+            IGNITION_LOCAL_SITES_PATH: '${PWD}'
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            - pgsql
+    postgres:
+        container_name: maestria-postgres
+        image: 'postgres:latest'
+        environment:
+            - 'POSTGRES_USER=${POSTGRES_USER}'
+            - 'POSTGRES_PASSWORD=${POSTGRES_PW}'
+            - 'POSTGRES_DB=${POSTGRES_DB}-'
+        ports:
+            - '5440:5432'
+        volumes:
+            - 'db_data:/var/lib/postgresql/data'
+        restart: always
+        networks:
+            - sail
+    pgadmin:
+        container_name: maestria-pgadmin
+        image: 'dpage/pgadmin4:latest'
+        environment:
+            - 'PGADMIN_DEFAULT_EMAIL=${PGADMIN_MAIL}'
+            - 'PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PW}'
+        ports:
+            - '5055:80'
+        restart: always
+        networks:
+            - sail
+    pgsql:
+        image: 'postgres:15'
+        ports:
+            - '${FORWARD_DB_PORT:-5432}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASSWORD:-secret}'
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+        volumes:
+            - 'sail-pgsql:/var/lib/postgresql/data'
+            - './vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - pg_isready
+                - '-q'
+                - '-d'
+                - '${DB_DATABASE}'
+                - '-U'
+                - '${DB_USERNAME}'
+            retries: 3
+            timeout: 5s
+networks:
+    sail:
+        driver: bridge
+volumes:
+    db_data: null
+    sail-pgsql:
+        driver: local

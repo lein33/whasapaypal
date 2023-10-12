@@ -1,0 +1,87 @@
+php
+sudo apt install php8.2 -y
+
+
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+docker rmi $(docker images -a -q)
+sudo docker container rm 3a1
+docker rmi -f a045
+docker compose up -d --build
+docker container ls
+docker exec -it 26e /bin/sh
+chmod 777 -R /var/www/html/storage/
+chmod 777 -R var/www/html/bootstrap/
+docker compose exec php php /var/www/html/artisan migrate
+docker network prune
+docker inspect 
+
+docker image rm
+
+puglins laravel vscode
+	Laravel Blade Snippets
+	laravel intellisense
+	php intelephense
+
+en el directorio antes del app
+composer require laravel/sail --dev
+ ./vendor/bin/sail up -d
+ingrsar al directoria de la app
+php artisan sail:install
+
+./vendor/bin/sail artisan make:migration create_categories_table
+ ./vendor/bin/sail artisan make:migrate rollback --step=5
+
+ ./vendor/bin/sail artisan make:model Disc -mcr
+ ./vendor/bin/sail artisan migrate
+ ./vendor/bin/sail artisan migrate:fresh
+
+./vendor/bin/sail artisan make:controller UserController
+./vendor/bin/sail artisan make:model User -m --api
+./vendor/bin/sail artisan route:list
+
+ ./vendor/bin/sail artisan make:factory UserRolFactory
+ ./vendor/bin/sail artisan make:seeder UserRolSeeder
+
+./vendor/bin/sail artisan make:request ActualizarUserRequest
+
+./vendor/bin/sail artisan make:resource UserResource
+
+
+sembrar datos con fake
+./vendor/bin/sail artisan db:seed --class=UserSeeder
+
+vendor/bin/sail artisan make:middleware CORS
+
+eliminar tablas base de datos
+./vendor/bin/sail artisan db:wipe
+https://kinsta.com/es/blog/laravel-model-factories/
+
+https://www.youtube.com/watch?v=VZAxhiXHE7c
+
+
+
+imagenes laravel
+./vendor/bin/sail artisan storage:link
+https://www.youtube.com/watch?v=iPeflW0SrgE&t=664s
+
+
+
+docker exec -it seguridad-maestria-php bash
+	composer update
+
+repair docker
+https://www.baeldung.com/linux/docker-permission-denied-daemon-socket-error
+
+instalacion paquetes
+sudo apt-get install php-xml
+
+
+averiguar ip docker
+https://www.freecodecamp.org/espanol/news/como-obtener-la-direccion-ip-de-un-contenedor-docker-explicado-con-ejemplos/
+docker ps --format \
+"table {{.ID}}\t{{.Status}}\t{{.Names}}"
+
+docker inspect -f \
+'{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \
+75000c343eb7
